@@ -149,8 +149,15 @@
   }
 
   // ----- Counter -----
+  var provinces = {};
+  branches.forEach(function (b) {
+    provinces[b.address.split(",").pop().trim()] = true;
+  });
+  var counts = { branches: branches.length, provinces: Object.keys(provinces).length };
+
   document.querySelectorAll("[data-count]").forEach(function (el) {
-    var target = Number(el.getAttribute("data-count"));
+    var key = el.getAttribute("data-count");
+    var target = key in counts ? counts[key] : Number(key);
     var n = 0;
     var timer = setInterval(function () {
       n += 1;
