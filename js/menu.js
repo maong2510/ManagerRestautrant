@@ -16,13 +16,13 @@
       desc: "Món “linh hồn” của Huyền Anh: ếch đồng om sả ớt, măng chua giòn, nước dùng cay nồng đậm đà.",
       tag: "Best seller",
       featured: true,
-      img: pexels(19237181, 1400)
+      img: "https://quananngonhanoi.com/wp-content/uploads/2025/05/quan-xua.jpg"
     },
     {
       category: "lau",
       name: "Lẩu ếch om chuối đậu",
       desc: "Chuối xanh bùi, đậu rán béo, thơm mẻ và nghệ – chuẩn vị Bắc.",
-      img: pexels(6426069, 1200)
+      img: "https://cdn.hstatic.net/files/200000700229/article/cach-nau-ech-om-chuoi-dau-1_0429d611affd4494a09d04cb795364c5.jpg"
     },
     {
       category: "an-kem",

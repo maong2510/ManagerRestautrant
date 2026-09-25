@@ -65,7 +65,7 @@
           : "";
         return (
           '<article class="dish' + (m.featured ? " dish--featured" : "") + (wide ? " dish--wide" : "") + (half ? " dish--half" : "") + '" style="animation-delay:' + i * 60 + 'ms">' +
-            '<img loading="lazy" src="' + m.img + '" alt="' + escapeHtml(m.name) + '" onerror="this.remove()" />' +
+            '<img loading="lazy" referrerpolicy="no-referrer" src="' + m.img + '" alt="' + escapeHtml(m.name) + '" onerror="this.remove()" />' +
             tag +
             '<div class="dish__body"><h3>' + escapeHtml(m.name) + "</h3><p>" + escapeHtml(m.desc) + "</p></div>" +
           "</article>"
