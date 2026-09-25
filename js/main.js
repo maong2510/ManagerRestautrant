@@ -2,6 +2,7 @@
   "use strict";
 
   var branches = window.BRANCHES || [];
+  var menu = window.MENU || [];
 
   function formatPhone(p) {
     return p.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
@@ -13,14 +14,30 @@
     });
   }
 
+  function normalize(s) {
+    return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
+  }
+
+  function icon(name) {
+    return '<svg aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+  }
+
   // ----- Header & mobile nav -----
   var header = document.getElementById("header");
   var nav = document.getElementById("nav");
   var toggle = document.getElementById("navToggle");
 
-  window.addEventListener("scroll", function () {
+  function onScroll() {
     header.classList.toggle("is-scrolled", window.scrollY > 40);
-  });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  function closeNav() {
+    nav.classList.remove("is-open");
+    toggle.classList.remove("is-open");
+    toggle.setAttribute("aria-expanded", "false");
+  }
 
   toggle.addEventListener("click", function () {
     var open = nav.classList.toggle("is-open");
@@ -29,67 +46,88 @@
   });
 
   nav.addEventListener("click", function (e) {
-    if (e.target.tagName === "A") {
-      nav.classList.remove("is-open");
-      toggle.classList.remove("is-open");
-      toggle.setAttribute("aria-expanded", "false");
-    }
+    if (e.target.closest("a")) closeNav();
   });
 
-  // ----- Menu tabs -----
-  var tabs = document.querySelectorAll(".tab");
-  var panels = document.querySelectorAll(".menu__grid");
-  tabs.forEach(function (tab) {
-    tab.addEventListener("click", function () {
-      tabs.forEach(function (t) { t.classList.remove("is-active"); });
-      panels.forEach(function (p) {
-        var active = p.getAttribute("data-panel") === tab.getAttribute("data-tab");
-        p.classList.toggle("is-active", active);
-        if (active) {
-          p.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("is-visible"); });
-        }
-      });
-      tab.classList.add("is-active");
-    });
-  });
+  // ----- Menu (bento) -----
+  var menuGrid = document.getElementById("menuGrid");
 
-  // ----- Branches -----
-  var grid = document.getElementById("branchGrid");
-
-  function renderBranches(filter) {
-    grid.innerHTML = branches
-      .filter(function (b) { return filter === "all" || b.region === filter; })
-      .map(function (b) {
-        var mapUrl = "https://www.google.com/maps/search/?api=1&query=" +
-          encodeURIComponent("Lẩu ếch Huyền Anh " + b.address);
-        var phone = b.phone
-          ? '<a class="branch__phone" href="tel:' + b.phone + '">📞 ' + formatPhone(b.phone) + "</a>"
-          : '<span class="branch__phone branch__phone--muted">📞 Xem hotline trên fanpage</span>';
+  function renderMenu(cat) {
+    var items = menu.filter(function (m) { return m.category === cat; });
+    var rest = items.filter(function (m) { return !m.featured; });
+    menuGrid.innerHTML = items
+      .map(function (m, i) {
+        // Cạnh món nổi bật (2x2) còn 4 ô trống: kéo rộng món thường để lấp kín lưới.
+        var wide = !m.featured && (rest.length < 3 || (rest.length === 3 && m === rest[2]));
+        var tag = m.tag
+          ? '<span class="tag' + (/cay/i.test(m.tag) ? " tag--chili" : "") + '">' + escapeHtml(m.tag) + "</span>"
+          : "";
         return (
-          '<article class="branch">' +
-            '<span class="branch__region">' + (b.region === "hanoi" ? "Hà Nội" : "Tỉnh") + "</span>" +
-            "<h3>" + escapeHtml(b.name) + "</h3>" +
-            '<p class="branch__addr">📍 ' + escapeHtml(b.address) + "</p>" +
-            phone +
-            '<div class="branch__actions">' +
-              '<a href="' + mapUrl + '" target="_blank" rel="noopener">Chỉ đường</a>' +
-              '<a href="' + b.facebook + '" target="_blank" rel="noopener">Fanpage</a>' +
-            "</div>" +
+          '<article class="dish' + (m.featured ? " dish--featured" : "") + (wide ? " dish--wide" : "") + '" style="animation-delay:' + i * 60 + 'ms">' +
+            '<img loading="lazy" src="' + m.img + '" alt="' + escapeHtml(m.name) + '" onerror="this.remove()" />' +
+            tag +
+            '<div class="dish__body"><h3>' + escapeHtml(m.name) + "</h3><p>" + escapeHtml(m.desc) + "</p></div>" +
           "</article>"
         );
       })
       .join("");
   }
 
-  document.querySelectorAll(".chip").forEach(function (chip) {
-    chip.addEventListener("click", function () {
-      document.querySelectorAll(".chip").forEach(function (c) { c.classList.remove("is-active"); });
-      chip.classList.add("is-active");
-      renderBranches(chip.getAttribute("data-filter"));
-    });
+  document.getElementById("menuTabs").addEventListener("click", function (e) {
+    var chip = e.target.closest(".chip");
+    if (!chip) return;
+    this.querySelectorAll(".chip").forEach(function (c) { c.classList.toggle("is-active", c === chip); });
+    renderMenu(chip.getAttribute("data-cat"));
   });
 
-  renderBranches("all");
+  renderMenu("lau");
+
+  // ----- Branches -----
+  var grid = document.getElementById("branchGrid");
+  var empty = document.getElementById("branchEmpty");
+  var search = document.getElementById("branchSearch");
+  var currentFilter = "all";
+
+  function renderBranches() {
+    var q = normalize(search.value.trim());
+    var list = branches.filter(function (b) {
+      var inRegion = currentFilter === "all" || b.region === currentFilter;
+      return inRegion && (!q || normalize(b.name + " " + b.address).indexOf(q) !== -1);
+    });
+
+    grid.innerHTML = list.map(function (b, i) {
+      var mapUrl = "https://www.google.com/maps/search/?api=1&query=" +
+        encodeURIComponent("Lẩu ếch Huyền Anh " + b.address);
+      var phone = b.phone
+        ? '<a href="tel:' + b.phone + '">' + formatPhone(b.phone) + "</a>"
+        : "Xem hotline trên fanpage";
+      return (
+        '<article class="branch" style="animation-delay:' + i * 40 + 'ms">' +
+          '<div class="branch__top"><span class="branch__region">' + (b.region === "hanoi" ? "Hà Nội" : "Tỉnh") + "</span>" +
+          '<span class="branch__no">' + String(branches.indexOf(b) + 1).padStart(2, "0") + "</span></div>" +
+          "<h3>" + escapeHtml(b.name.replace(/^Cơ sở /, "")) + "</h3>" +
+          '<p class="branch__row branch__addr">' + icon("pin") + "<span>" + escapeHtml(b.address) + "</span></p>" +
+          '<p class="branch__row">' + icon("phone") + "<span>" + phone + "</span></p>" +
+          '<div class="branch__actions">' +
+            '<a href="' + mapUrl + '" target="_blank" rel="noopener">Chỉ đường</a>' +
+            '<a href="' + b.facebook + '" target="_blank" rel="noopener">Fanpage</a>' +
+          "</div>" +
+        "</article>"
+      );
+    }).join("");
+    empty.hidden = list.length > 0;
+  }
+
+  document.getElementById("branchFilters").addEventListener("click", function (e) {
+    var chip = e.target.closest(".chip");
+    if (!chip) return;
+    this.querySelectorAll(".chip").forEach(function (c) { c.classList.toggle("is-active", c === chip); });
+    currentFilter = chip.getAttribute("data-filter");
+    renderBranches();
+  });
+  search.addEventListener("input", renderBranches);
+
+  renderBranches();
 
   // ----- Booking form -----
   var select = document.getElementById("branchSelect");
@@ -100,8 +138,7 @@
 
   var form = document.getElementById("bookingForm");
   var msg = document.getElementById("formMsg");
-  var dateInput = form.querySelector('input[name="date"]');
-  dateInput.min = new Date().toISOString().split("T")[0];
+  form.querySelector('input[name="date"]').min = new Date().toISOString().split("T")[0];
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -142,28 +179,34 @@
           io.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15 });
+    }, { threshold: 0.12 });
     reveals.forEach(function (el) { io.observe(el); });
   } else {
     reveals.forEach(function (el) { el.classList.add("is-visible"); });
   }
 
-  // ----- Counter -----
+  // ----- Counters -----
   var provinces = {};
   branches.forEach(function (b) {
     provinces[b.address.split(",").pop().trim()] = true;
   });
   var counts = { branches: branches.length, provinces: Object.keys(provinces).length };
 
+  document.querySelectorAll("[data-total]").forEach(function (el) {
+    el.textContent = counts[el.getAttribute("data-total")];
+  });
+
   document.querySelectorAll("[data-count]").forEach(function (el) {
     var key = el.getAttribute("data-count");
     var target = key in counts ? counts[key] : Number(key);
-    var n = 0;
-    var timer = setInterval(function () {
-      n += 1;
-      el.textContent = n;
-      if (n >= target) clearInterval(timer);
-    }, 120);
+    var start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / 1200, 1);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   });
 
   document.getElementById("year").textContent = new Date().getFullYear();
