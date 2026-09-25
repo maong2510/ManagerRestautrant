@@ -58,12 +58,13 @@
     menuGrid.innerHTML = items
       .map(function (m, i) {
         // Cạnh món nổi bật (2x2) còn 4 ô trống: kéo rộng món thường để lấp kín lưới.
-        var wide = !m.featured && (rest.length < 3 || (rest.length === 3 && m === rest[2]));
+        var half = !m.featured && rest.length === 1;
+        var wide = !m.featured && (rest.length === 2 || (rest.length === 3 && m === rest[2]));
         var tag = m.tag
           ? '<span class="tag' + (/cay/i.test(m.tag) ? " tag--chili" : "") + '">' + escapeHtml(m.tag) + "</span>"
           : "";
         return (
-          '<article class="dish' + (m.featured ? " dish--featured" : "") + (wide ? " dish--wide" : "") + '" style="animation-delay:' + i * 60 + 'ms">' +
+          '<article class="dish' + (m.featured ? " dish--featured" : "") + (wide ? " dish--wide" : "") + (half ? " dish--half" : "") + '" style="animation-delay:' + i * 60 + 'ms">' +
             '<img loading="lazy" src="' + m.img + '" alt="' + escapeHtml(m.name) + '" onerror="this.remove()" />' +
             tag +
             '<div class="dish__body"><h3>' + escapeHtml(m.name) + "</h3><p>" + escapeHtml(m.desc) + "</p></div>" +
