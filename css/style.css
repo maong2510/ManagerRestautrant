@@ -148,8 +148,10 @@ svg { width: 1.1em; height: 1.1em; flex-shrink: 0; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 0 rgba(255,198,41,.7); animation: ping 1.8s infinite; }
 .hero__title { font-size: clamp(3.6rem, 13vw, 10.5rem); font-weight: 900; letter-spacing: -.055em; line-height: 1.08; padding-top: .12em; margin-bottom: 32px; text-transform: uppercase; }
 .hero__title .line { display: block; opacity: 0; transform: translateY(40px); animation: rise .9s var(--ease) forwards; }
-.hero__title .line:nth-child(2) { animation-delay: .12s; }
-.hero__title .line:nth-child(3) { animation-delay: .24s; }
+.hero__title .line:nth-child(2) { animation-delay: 0s; }
+.hero__title .line:nth-child(3) { animation-delay: .12s; }
+.hero__title .line:nth-child(4) { animation-delay: .24s; }
+.hero__kicker { display: block; margin-bottom: .6em; font-size: clamp(.8rem, 1.4vw, 1rem); font-weight: 700; letter-spacing: .28em; line-height: 1.4; color: rgba(255,255,255,.75); }
 .line--accent { color: var(--lime); font-style: italic; }
 .hero__lead { max-width: 520px; font-size: clamp(1rem, 1.6vw, 1.15rem); color: rgba(255,255,255,.82); }
 .hero__lead strong { color: var(--white); }
