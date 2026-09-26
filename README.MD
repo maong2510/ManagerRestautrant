@@ -21,7 +21,7 @@ python3 -m http.server 8000
 
 ## Đưa website lên mạng (GitHub Pages)
 
-Bản demo hiện được phục vụ từ nhánh `gh-pages`: https://maong2510.github.io/ManagerRestautrant/
+Website chính thức: https://www.lauechhuyenanh.com (phục vụ từ nhánh `gh-pages` qua GitHub Pages, cấu hình bằng file `CNAME`).
 
 
 1. Vào **Settings → Pages** của repo, mục *Source* chọn **GitHub Actions**.
