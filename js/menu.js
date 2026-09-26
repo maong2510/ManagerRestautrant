@@ -13,7 +13,7 @@
     {
       category: "lau",
       name: "Lẩu ếch măng cay",
-      desc: "Món “linh hồn” của Huyền Anh: ếch đồng om sả ớt, măng chua giòn, nước dùng cay nồng đậm đà.",
+      desc: "Món “linh hồn” của Huyền Anh: ếch đồng om sả ớt, măng chua giòn, nước dùng cay nồng đậm đà.",
       tag: "Best seller",
       featured: true,
       img: "https://quananngonhanoi.com/wp-content/uploads/2025/05/quan-xua.jpg"

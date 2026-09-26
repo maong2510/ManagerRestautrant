@@ -139,7 +139,7 @@
 
   var form = document.getElementById("bookingForm");
   var msg = document.getElementById("formMsg");
-  form.querySelector('input[name="date"]').min = new Date().toISOString().split("T")[0];
+  initDatePicker(document.getElementById("datePick"));
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -155,7 +155,7 @@
       "Đặt bàn Lẩu Ếch Huyền Anh - " + b.name + "\n" +
       "Tên: " + d.get("name") + "\n" +
       "SĐT: " + d.get("phone") + "\n" +
-      "Thời gian: " + d.get("time") + " ngày " + d.get("date").split("-").reverse().join("/") + "\n" +
+      "Thời gian: " + d.get("time") + " ngày " + d.get("date") +"\n" +
       "Số người: " + d.get("people") +
       (d.get("note") ? "\nGhi chú: " + d.get("note") : "");
 
@@ -211,4 +211,74 @@
   });
 
   document.getElementById("year").textContent = new Date().getFullYear();
+
+  function initDatePicker(root) {
+    if (!root) return;
+    var input = root.querySelector("input");
+    var cal = root.querySelector(".cal");
+    var title = cal.querySelector(".cal__title");
+    var days = cal.querySelector(".cal__days");
+    var prev = cal.querySelector('[data-step="-1"]');
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var selected = null;
+    var view = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    function fmt(d) { return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear(); }
+    function same(a, b) { return a && b && a.getTime() === b.getTime(); }
+
+    function render() {
+      title.textContent = "Tháng " + (view.getMonth() + 1) + ", " + view.getFullYear();
+      prev.disabled = view <= new Date(today.getFullYear(), today.getMonth(), 1);
+      var offset = (view.getDay() + 6) % 7; // Monday first
+      var total = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+      var html = "";
+      for (var i = 0; i < offset; i++) html += "<span></span>";
+      for (var d = 1; d <= total; d++) {
+        var date = new Date(view.getFullYear(), view.getMonth(), d);
+        var cls = "cal__day" + (same(date, today) ? " is-today" : "") + (same(date, selected) ? " is-selected" : "");
+        html += '<button type="button" class="' + cls + '" data-day="' + d + '"' + (date < today ? " disabled" : "") + ">" + d + "</button>";
+      }
+      days.innerHTML = html;
+    }
+
+    function pick(date) {
+      selected = date;
+      input.value = fmt(date);
+      input.setCustomValidity("");
+      close();
+    }
+    function open() {
+      if (selected) view = new Date(selected.getFullYear(), selected.getMonth(), 1);
+      render();
+      cal.hidden = false;
+    }
+    function close() { cal.hidden = true; }
+
+    input.addEventListener("click", open);
+    input.addEventListener("focus", open);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+      else if (e.key !== "Tab") e.preventDefault();
+    });
+    cal.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    cal.addEventListener("click", function (e) {
+      var nav = e.target.closest(".cal__nav");
+      var day = e.target.closest(".cal__day");
+      var quick = e.target.closest(".cal__quick");
+      if (nav && !nav.disabled) {
+        view.setMonth(view.getMonth() + Number(nav.getAttribute("data-step")));
+        render();
+      } else if (day && !day.disabled) {
+        pick(new Date(view.getFullYear(), view.getMonth(), Number(day.getAttribute("data-day"))));
+      } else if (quick) {
+        var q = new Date(today); q.setDate(q.getDate() + Number(quick.getAttribute("data-add")));
+        pick(q);
+      }
+    });
+    document.addEventListener("click", function (e) {
+      if (!root.contains(e.target)) close();
+    });
+    input.addEventListener("blur", function () { setTimeout(function () { if (!root.contains(document.activeElement)) close(); }, 150); });
+  }
 })();
